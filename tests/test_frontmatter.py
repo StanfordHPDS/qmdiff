@@ -1,6 +1,11 @@
 """Tests for YAML frontmatter extraction and filter injection."""
 
-from qmdiff.frontmatter import extract_frontmatter, inject_filter, assemble_qmd
+from qmdiff.frontmatter import (
+    extract_frontmatter,
+    has_format,
+    inject_filter,
+    assemble_qmd,
+)
 
 
 # --- extract_frontmatter ---
@@ -70,6 +75,40 @@ class TestInjectFilter:
         assert lines[-1] == "---"
         assert lines[-2] == "  - /filter.lua"
         assert lines[-3] == "filters:"
+
+    def test_merges_with_existing_filters(self):
+        yaml = "---\ntitle: Test\nfilters:\n  - existing.lua\n---"
+        result = inject_filter(yaml, "/new-filter.lua")
+        assert "  - existing.lua" in result
+        assert "  - /new-filter.lua" in result
+        # Should only have one filters: key
+        assert result.count("filters:") == 1
+
+    def test_merges_with_multiple_existing_filters(self):
+        yaml = "---\ntitle: Test\nfilters:\n  - a.lua\n  - b.lua\n---"
+        result = inject_filter(yaml, "/c.lua")
+        assert "  - a.lua" in result
+        assert "  - b.lua" in result
+        assert "  - /c.lua" in result
+        assert result.count("filters:") == 1
+
+
+# --- has_format ---
+
+
+class TestHasFormat:
+    def test_no_format(self):
+        assert has_format("---\ntitle: Test\n---") is False
+
+    def test_simple_format(self):
+        assert has_format("---\ntitle: Test\nformat: pdf\n---") is True
+
+    def test_nested_format(self):
+        yaml = "---\ntitle: Test\nformat:\n  jasa-pdf:\n    keep-tex: true\n---"
+        assert has_format(yaml) is True
+
+    def test_default_yaml(self):
+        assert has_format("---\ntitle: Diff\n---") is False
 
 
 # --- assemble_qmd ---

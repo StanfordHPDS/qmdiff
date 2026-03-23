@@ -48,7 +48,7 @@ class TestCLIValidation:
             )
         assert result.exit_code == 1
         assert "Missing required tools" in result.output
-        assert "pandiff" in result.output
+        assert "quarto" in result.output
 
     def test_two_file_mode_requires_two_files(self):
         runner = CliRunner()
@@ -84,10 +84,6 @@ class TestYAMLSource:
         """Return patches that bypass dep checks and subprocess calls."""
         return [
             patch("qmdiff.cli.check_dependencies"),
-            patch(
-                "qmdiff.cli.run_pandiff",
-                return_value="{++new text++}",
-            ),
             patch("qmdiff.cli.render_diff"),
         ]
 

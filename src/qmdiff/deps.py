@@ -8,7 +8,6 @@ class MissingDependencyError(RuntimeError):
 
 
 _REQUIRED = {
-    "pandiff": "npm install -g pandiff",
     "quarto": "https://quarto.org/docs/get-started/",
 }
 

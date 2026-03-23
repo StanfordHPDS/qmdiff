@@ -4,15 +4,7 @@ Generate highlighted diffs between two versions of a Quarto manuscript. Produces
 
 ## Prerequisites
 
-qmdiff requires two external tools to be installed and on your PATH:
-
-- [**pandiff**](https://github.com/davidar/pandiff) — generates the underlying diff
-  ```bash
-  npm install -g pandiff
-  ```
-- [**Quarto**](https://quarto.org/docs/get-started/) — renders the final output
-
-qmdiff will check for these at startup and show install instructions if they're missing.
+qmdiff requires [**Quarto**](https://quarto.org/docs/get-started/) to be installed and on your PATH. qmdiff will check for this at startup and show install instructions if it's missing.
 
 ## Installation
 
@@ -63,9 +55,11 @@ qmdiff manuscript.qmd --rev HEAD~3 --output diff.html
 
 ## How it works
 
-1. Runs `pandiff` to generate a CriticMarkup diff between the two versions
-2. Converts CriticMarkup (`{++ ++}`, `{-- --}`, `{~~ ~> ~~}`) to Pandoc bracketed spans
-3. Extracts YAML frontmatter and injects a bundled Lua filter
-4. Renders via `quarto render` with the Lua filter applying format-specific styling
+1. Tokenizes both files into atomic units (prose words, code blocks, citations, math, inline code, cross-references, shortcodes)
+2. Diffs prose at the word level using Python's `difflib`, producing CriticMarkup (`{++ ++}`, `{-- --}`)
+3. Passes code blocks through from the new version without diff markup (so they remain executable)
+4. Converts CriticMarkup to Pandoc bracketed spans
+5. Extracts YAML frontmatter and injects a bundled Lua filter
+6. Renders via `quarto render` with the Lua filter applying format-specific styling
 
-The CriticMarkup-to-spans conversion happens before Pandoc parsing, which avoids LaTeX escaping bugs that occur when injecting raw LaTeX in filters.
+The tokenizer ensures that Quarto-specific syntax (citations, math, cross-references, etc.) is never split by diff markers. If your YAML frontmatter specifies a custom format (e.g., `jasa-pdf`), qmdiff respects it rather than overriding with `--to`.

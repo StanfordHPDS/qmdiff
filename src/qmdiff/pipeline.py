@@ -39,25 +39,28 @@ def run_pandiff(old: Path, new: Path) -> str:
 def render_diff(
     diff_qmd: Path,
     output: Path,
-    fmt: str,
+    fmt: str | None = None,
     *,
     keep: bool = False,
 ) -> None:
     """Render the intermediate diff QMD to the target format.
 
+    If fmt is None, quarto uses the format from YAML frontmatter.
     Raises RuntimeError if quarto fails.
     Removes the intermediate file unless keep=True.
     """
+    cmd = [
+        "quarto",
+        "render",
+        str(diff_qmd),
+        "--output",
+        str(output),
+    ]
+    if fmt is not None:
+        cmd.extend(["--to", fmt])
+
     result = subprocess.run(
-        [
-            "quarto",
-            "render",
-            str(diff_qmd),
-            "--to",
-            fmt,
-            "--output",
-            str(output),
-        ],
+        cmd,
         capture_output=True,
         text=True,
     )

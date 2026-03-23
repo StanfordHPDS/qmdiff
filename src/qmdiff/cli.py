@@ -10,9 +10,10 @@ import click
 from qmdiff import __version__
 from qmdiff.criticmarkup import convert_criticmarkup
 from qmdiff.deps import check_dependencies
-from qmdiff.frontmatter import extract_frontmatter, assemble_qmd
+from qmdiff.differ import diff_texts
+from qmdiff.frontmatter import extract_frontmatter, has_format, assemble_qmd
 from qmdiff.git import validate_revision, extract_file_at_revision
-from qmdiff.pipeline import get_filter_path, run_pandiff, render_diff, NoDiffError
+from qmdiff.pipeline import get_filter_path, render_diff
 
 
 @click.command()
@@ -54,16 +55,17 @@ def main(
         if len(files) != 2:
             raise click.UsageError("Provide exactly two files (OLD NEW), or use --rev.")
 
-    # --- Infer format from output extension if not given ---
+    # --- Infer format from output extension if --to not given ---
+    # fmt stays None if YAML has a format: key (let quarto use it)
     output_path = Path(output)
     if fmt is None:
         ext = output_path.suffix.lstrip(".")
-        if ext in ("pdf", "html", "docx"):
-            fmt = ext
-        else:
+        if ext not in ("pdf", "html", "docx"):
             raise click.UsageError(
                 f"Cannot infer format from '{output}'. Use --to pdf|html|docx."
             )
+        # Will be refined in _run_pipeline after reading YAML
+        fmt = ext
 
     # --- Check dependencies ---
     try:
@@ -93,9 +95,11 @@ def _run_pipeline(
     """Run the full diff pipeline."""
     click.echo("Generating diff...")
 
-    try:
-        diff = run_pandiff(old, new)
-    except NoDiffError:
+    old_text = old.read_text()
+    new_text = new.read_text()
+
+    diff = diff_texts(old_text, new_text)
+    if diff == new_text:
         click.echo("No differences found.")
         return
 
@@ -106,11 +110,14 @@ def _run_pipeline(
     source_text = yaml_source.read_text()
     yaml, _body = extract_frontmatter(source_text)
 
+    # If YAML already specifies a format, let quarto use it
+    render_fmt = None if has_format(yaml) else fmt
+
     filter_path = get_filter_path()
     diff_qmd = output.with_suffix(".qmd")
     diff_qmd.write_text(assemble_qmd(yaml, processed, str(filter_path)))
     click.echo(f"Wrote {diff_qmd}")
 
-    click.echo(f"Rendering to {fmt}...")
-    render_diff(diff_qmd, output, fmt, keep=keep)
+    click.echo(f"Rendering to {render_fmt or 'YAML format'}...")
+    render_diff(diff_qmd, output, render_fmt, keep=keep)
     click.echo(f"Done -> {output}")

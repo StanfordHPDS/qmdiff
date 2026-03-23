@@ -113,3 +113,32 @@ class TestRenderDiff:
         with patch("subprocess.run", return_value=result):
             render_diff(diff_qmd, output, "pdf", keep=True)
             assert diff_qmd.exists()
+
+    def test_no_format_omits_to_flag(self, tmp_path):
+        """When fmt is None, --to should not be passed to quarto."""
+        diff_qmd = tmp_path / "test-diff.qmd"
+        diff_qmd.write_text("content")
+        output = tmp_path / "out.pdf"
+
+        result = MagicMock()
+        result.returncode = 0
+
+        with patch("subprocess.run", return_value=result) as mock_run:
+            render_diff(diff_qmd, output, fmt=None)
+            args = mock_run.call_args[0][0]
+            assert "--to" not in args
+
+    def test_format_passes_to_flag(self, tmp_path):
+        """When fmt is provided, --to should be passed."""
+        diff_qmd = tmp_path / "test-diff.qmd"
+        diff_qmd.write_text("content")
+        output = tmp_path / "out.pdf"
+
+        result = MagicMock()
+        result.returncode = 0
+
+        with patch("subprocess.run", return_value=result) as mock_run:
+            render_diff(diff_qmd, output, fmt="pdf")
+            args = mock_run.call_args[0][0]
+            assert "--to" in args
+            assert "pdf" in args
