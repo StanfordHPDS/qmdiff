@@ -382,3 +382,214 @@ class TestDiffTextsRealisticManuscript:
 
         # Unchanged cross-ref not wrapped in diff
         assert "{--@smith2020--}" not in result
+
+    def test_sections_not_cross_matched(self):
+        """Diffs should not match words across different sections."""
+        old = (
+            "## Methods\n\n"
+            "We conducted a survey of 500 adults.\n\n"
+            "## Results\n\n"
+            "Of the 500 participants, 487 provided data.\n\n"
+            "## Discussion\n\n"
+            "Our findings suggest positive outcomes."
+        )
+        new = (
+            "## Methods\n\n"
+            "We conducted a survey of 1,200 adults in three cities.\n\n"
+            "## Results\n\n"
+            "Of the 1,200 participants, 1,147 provided complete data.\n\n"
+            "## Discussion\n\n"
+            "Our findings suggest positive outcomes across multiple cities."
+        )
+        result = diff_texts(old, new)
+
+        # Each section header should appear exactly once (not duplicated)
+        assert result.count("## Methods") == 1
+        assert result.count("## Results") == 1
+        assert result.count("## Discussion") == 1
+
+        # The Methods section changes should be near "## Methods"
+        methods_pos = result.index("## Methods")
+        results_pos = result.index("## Results")
+        # "500" deletion should be between Methods and Results
+        deleted_500 = result.index("{--500--}")
+        assert methods_pos < deleted_500 < results_pos
+
+        # "1,200" addition should also be between Methods and Results
+        # (first occurrence — there are two)
+        added_1200 = result.index("{++1,200++}")
+        assert methods_pos < added_1200 < results_pos
+
+    def test_rewritten_section_stays_together(self):
+        """A rewritten section should show as delete-old then insert-new,
+        not interleaved with other sections."""
+        old = (
+            "## Introduction\n\n"
+            "This is the old introduction with some text.\n\n"
+            "## Methods\n\n"
+            "We used a simple method."
+        )
+        new = (
+            "## Introduction\n\n"
+            "This is a completely rewritten introduction paragraph.\n\n"
+            "## Methods\n\n"
+            "We used a simple method."
+        )
+        result = diff_texts(old, new)
+
+        # Methods section should be unchanged
+        assert "## Methods" in result
+        assert "{--## Methods--}" not in result
+        assert "{++## Methods++}" not in result
+
+        # "We used a simple method." should appear without diff markers
+        assert "We used a simple method." in result
+        # Make sure it's not marked as added or deleted
+        assert "{++We++}" not in result
+        assert "{--We--}" not in result
+
+    def test_expanded_manuscript_no_cross_section_matching(self):
+        """Real-world test: v2 significantly expands v1 sections.
+        Deletions from v1 should not interleave with additions from v2
+        in unrelated sections."""
+        old = (
+            "## Introduction\n\n"
+            "Mental health disorders represent a growing public health concern in urban\n"
+            "environments worldwide. As urbanization continues to accelerate, understanding\n"
+            "the environmental determinants of mental health becomes increasingly important.\n\n"
+            "Previous research has suggested that exposure to natural environments may\n"
+            "have beneficial effects on psychological well-being. However, the majority\n"
+            "of studies have relied on cross-sectional designs, limiting causal inference.\n\n"
+            "In this study, we aimed to examine the association between residential\n"
+            "proximity to urban green spaces and mental health outcomes in a diverse\n"
+            "sample of urban residents.\n\n"
+            "## Methods\n\n"
+            "### Study Design and Participants\n\n"
+            "We conducted a cross-sectional survey of 500 adults residing in a\n"
+            "mid-sized European city between January and June 2024. Participants\n"
+            "were recruited through random sampling of residential addresses.\n"
+            "Inclusion criteria were: age 18 years or older, residence in the\n"
+            "study area for at least 12 months, and ability to complete the\n"
+            "survey in English.\n\n"
+            "### Measures\n\n"
+            "Mental health was assessed using the General Health Questionnaire\n"
+            "(GHQ-12), a widely used screening instrument for psychological\n"
+            "distress. Green space proximity was measured as the Euclidean\n"
+            "distance from each participant's residence to the nearest public\n"
+            "green space of at least 1 hectare.\n\n"
+            "## Results\n\n"
+            "Of the 500 participants, 487 provided complete data and were\n"
+            "included in the analysis. The mean age was 42.3 years (SD = 14.1),\n"
+            "and 52% were female.\n\n"
+            "In the adjusted model, each 100-meter decrease in distance to\n"
+            "green space was associated with a 0.8-point improvement in GHQ-12\n"
+            "scores.\n\n"
+            "## Discussion\n\n"
+            "Our findings suggest that proximity to urban green spaces is\n"
+            "associated with better mental health outcomes. These results are\n"
+            "consistent with previous research highlighting the psychological\n"
+            "benefits of nature exposure.\n\n"
+            "Several limitations should be noted. First, the cross-sectional\n"
+            "design precludes causal inference. Second, we relied on\n"
+            "self-reported mental health measures.\n\n"
+            "## Conclusion\n\n"
+            "This study provides evidence supporting the mental health benefits\n"
+            "of urban green spaces. Urban planners should consider these findings\n"
+            "when designing cities that promote well-being."
+        )
+        new = (
+            "## Introduction\n\n"
+            "Mental health disorders represent a growing public health concern in urban\n"
+            "environments worldwide. As urbanization continues to accelerate, understanding\n"
+            "the environmental determinants of mental health becomes increasingly important.\n"
+            "The World Health Organization estimates that over 55% of the global population\n"
+            "now lives in urban areas, a figure projected to reach 68% by 2050.\n\n"
+            "Previous research has suggested that exposure to natural environments may\n"
+            "have beneficial effects on psychological well-being. However, the majority\n"
+            "of studies have relied on cross-sectional designs with limited sample sizes,\n"
+            "restricting both causal inference and generalizability. A recent meta-analysis\n"
+            "by Chen et al. (2024) identified significant heterogeneity in effect sizes\n"
+            "across studies, underscoring the need for larger, multi-site investigations.\n\n"
+            "In this study, we aimed to examine the association between residential\n"
+            "proximity to urban green spaces and mental health outcomes in a diverse,\n"
+            "multi-city sample of urban residents, while also exploring potential\n"
+            "effect modification by sociodemographic factors.\n\n"
+            "## Methods\n\n"
+            "### Study Design and Participants\n\n"
+            "We conducted a cross-sectional survey of 1,200 adults residing in three\n"
+            "mid-sized European cities (Birmingham, Lyon, and Rotterdam) between\n"
+            "January and June 2024. Participants were recruited through stratified\n"
+            "random sampling of residential addresses, ensuring representation\n"
+            "across income quartiles. Inclusion criteria were: age 18 years or older,\n"
+            "residence in the study area for at least 12 months, and ability to\n"
+            "complete the survey in the local language or English.\n\n"
+            "### Measures\n\n"
+            "Mental health was assessed using the General Health Questionnaire\n"
+            "(GHQ-12), a widely used screening instrument for psychological\n"
+            "distress. We additionally administered the WHO-5 Well-Being Index\n"
+            "as a secondary outcome measure. Green space proximity was measured\n"
+            "as the Euclidean distance from each participant's residence to the\n"
+            "nearest public green space of at least 1 hectare, using municipal\n"
+            "GIS databases.\n\n"
+            "## Results\n\n"
+            "Of the 1,200 participants, 1,147 provided complete data and were\n"
+            "included in the analysis. The mean age was 44.1 years (SD = 15.3),\n"
+            "and 53% were female. The median distance to the nearest green space\n"
+            "was 340 meters (IQR: 180--620).\n\n"
+            "In the adjusted model, each 100-meter decrease in distance to\n"
+            "green space was associated with a 0.6-point improvement in GHQ-12\n"
+            "scores. Results were consistent when using the WHO-5 as the outcome measure.\n\n"
+            "The association was stronger among participants aged 60 and older\n"
+            "compared to younger age groups. We also observed a significant\n"
+            "interaction with income, with stronger effects among participants\n"
+            "in the lowest income quartile.\n\n"
+            "## Discussion\n\n"
+            "Our findings suggest that proximity to urban green spaces is\n"
+            "associated with better mental health outcomes across multiple\n"
+            "European cities. These results are consistent with previous research\n"
+            "highlighting the psychological benefits of nature exposure, and\n"
+            "extend the evidence base by demonstrating effect modification by\n"
+            "socioeconomic status.\n\n"
+            "The stronger association observed among lower-income participants\n"
+            "is particularly noteworthy, as these populations often have reduced\n"
+            "access to green spaces.\n\n"
+            "Several limitations should be noted. First, the cross-sectional\n"
+            "design precludes causal inference. Second, we relied on\n"
+            "self-reported mental health measures, though we mitigated this\n"
+            "concern by using two validated instruments. Third, we did not\n"
+            "account for the quality or type of green spaces.\n\n"
+            "## Conclusion\n\n"
+            "This multi-city study provides robust evidence supporting the\n"
+            "mental health benefits of urban green spaces, with effects that\n"
+            "are particularly pronounced among older adults and lower-income\n"
+            "residents. Urban planners and public health practitioners should\n"
+            "consider these findings when designing equitable cities that\n"
+            "promote population well-being."
+        )
+        result = diff_texts(old, new)
+
+        # Each section header should appear exactly once
+        for header in [
+            "## Introduction",
+            "## Methods",
+            "## Results",
+            "## Discussion",
+            "## Conclusion",
+        ]:
+            assert result.count(header) == 1, (
+                f"'{header}' appears {result.count(header)} times"
+            )
+
+        # Section ordering must be preserved
+        intro_pos = result.index("## Introduction")
+        methods_pos = result.index("## Methods")
+        results_pos = result.index("## Results")
+        discussion_pos = result.index("## Discussion")
+        conclusion_pos = result.index("## Conclusion")
+        assert intro_pos < methods_pos < results_pos < discussion_pos < conclusion_pos
+
+        # Deletions from v1's Discussion should NOT appear after v2's Conclusion
+        # (this was the cross-section matching bug)
+        conclusion_text_after = result[conclusion_pos:]
+        # After Conclusion header, there should be no deleted section headers
+        assert "{--##" not in conclusion_text_after

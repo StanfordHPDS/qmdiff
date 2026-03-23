@@ -93,22 +93,21 @@ def _run_pipeline(
     old: Path, new: Path, output: Path, fmt: str, keep: bool, yaml_source: Path
 ) -> None:
     """Run the full diff pipeline."""
+    click.echo("Extracting metadata...")
+    source_text = yaml_source.read_text()
+    yaml, _body = extract_frontmatter(source_text)
+
     click.echo("Generating diff...")
+    _, old_body = extract_frontmatter(old.read_text())
+    _, new_body = extract_frontmatter(new.read_text())
 
-    old_text = old.read_text()
-    new_text = new.read_text()
-
-    diff = diff_texts(old_text, new_text)
-    if diff == new_text:
+    diff = diff_texts(old_body, new_body)
+    if diff == new_body:
         click.echo("No differences found.")
         return
 
     click.echo("Converting markup...")
     processed = convert_criticmarkup(diff)
-
-    click.echo("Extracting metadata...")
-    source_text = yaml_source.read_text()
-    yaml, _body = extract_frontmatter(source_text)
 
     # If YAML already specifies a format, let quarto use it
     render_fmt = None if has_format(yaml) else fmt
