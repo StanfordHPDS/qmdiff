@@ -1,0 +1,27 @@
+[project]
+name = "qmdiff"
+version = "0.1.0"
+description = "Generate highlighted diffs between Quarto manuscript versions"
+readme = "README.md"
+authors = [
+    { name = "Malcolm Barrett", email = "malcolmbarrett@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.0",
+]
+
+[project.scripts]
+qmdiff = "qmdiff.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+]

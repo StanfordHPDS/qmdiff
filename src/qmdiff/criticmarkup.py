@@ -1,24 +1,18 @@
-#!/usr/bin/env python3
-"""
-preprocess-criticmarkup.py
+"""CriticMarkup to Pandoc span conversion.
 
-Converts CriticMarkup syntax to Pandoc bracketed spans.
-Reads from stdin or a file argument, writes to stdout.
+Converts CriticMarkup syntax to Pandoc bracketed spans so that
+Pandoc's normal parser handles special characters correctly,
+avoiding LaTeX escaping bugs.
 
-This avoids the LaTeX escaping bugs in filters that inject raw LaTeX,
-because the content inside spans goes through Pandoc's normal parser
-and serializer, which handles special characters correctly.
-
-CriticMarkup        → Pandoc span
-{++ added text ++}  → [added text]{.cm-added}
-{-- deleted text --}→ [deleted text]{.cm-deleted}
-{~~ old ~> new ~~}  → [old]{.cm-deleted}[new]{.cm-added}
-{== highlight ==}   → [highlight]{.cm-highlight}
-{>> comment <<}     → [comment]{.cm-comment}
+CriticMarkup        -> Pandoc span
+{++ added text ++}  -> [added text]{.cm-added}
+{-- deleted text --}-> [deleted text]{.cm-deleted}
+{~~ old ~> new ~~}  -> [old]{.cm-deleted}[new]{.cm-added}
+{== highlight ==}   -> [highlight]{.cm-highlight}
+{>> comment <<}     -> [comment]{.cm-comment}
 """
 
 import re
-import sys
 
 
 def collapse_whitespace(text: str) -> str:
@@ -30,7 +24,7 @@ def convert_criticmarkup(text: str) -> str:
     """Convert CriticMarkup to Pandoc bracketed spans."""
 
     # Substitutions first (most specific pattern):
-    # {~~old~>new~~} → [old]{.cm-deleted}[new]{.cm-added}
+    # {~~old~>new~~} -> [old]{.cm-deleted}[new]{.cm-added}
     text = re.sub(
         r"\{~~(.*?)~>(.*?)~~\}",
         lambda m: (
@@ -41,7 +35,7 @@ def convert_criticmarkup(text: str) -> str:
         flags=re.DOTALL,
     )
 
-    # Additions: {++text++} → [text]{.cm-added}
+    # Additions: {++text++} -> [text]{.cm-added}
     text = re.sub(
         r"\{\+\+(.*?)\+\+\}",
         lambda m: f"[{collapse_whitespace(m.group(1))}]{{.cm-added}}",
@@ -49,7 +43,7 @@ def convert_criticmarkup(text: str) -> str:
         flags=re.DOTALL,
     )
 
-    # Deletions: {--text--} → [text]{.cm-deleted}
+    # Deletions: {--text--} -> [text]{.cm-deleted}
     text = re.sub(
         r"\{--(.*?)--\}",
         lambda m: f"[{collapse_whitespace(m.group(1))}]{{.cm-deleted}}",
@@ -57,7 +51,7 @@ def convert_criticmarkup(text: str) -> str:
         flags=re.DOTALL,
     )
 
-    # Highlights: {==text==} → [text]{.cm-highlight}
+    # Highlights: {==text==} -> [text]{.cm-highlight}
     text = re.sub(
         r"\{==(.*?)==\}",
         lambda m: f"[{collapse_whitespace(m.group(1))}]{{.cm-highlight}}",
@@ -65,7 +59,7 @@ def convert_criticmarkup(text: str) -> str:
         flags=re.DOTALL,
     )
 
-    # Comments: {>>text<<} → [text]{.cm-comment}
+    # Comments: {>>text<<} -> [text]{.cm-comment}
     text = re.sub(
         r"\{>>(.*?)<<\}",
         lambda m: f"[{collapse_whitespace(m.group(1))}]{{.cm-comment}}",
@@ -74,13 +68,3 @@ def convert_criticmarkup(text: str) -> str:
     )
 
     return text
-
-
-if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] != "-":
-        with open(sys.argv[1]) as f:
-            text = f.read()
-    else:
-        text = sys.stdin.read()
-
-    sys.stdout.write(convert_criticmarkup(text))

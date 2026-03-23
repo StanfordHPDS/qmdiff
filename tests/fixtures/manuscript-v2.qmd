@@ -1,0 +1,135 @@
+---
+title: "Effects of Urban Green Spaces on Mental Health Outcomes: A Cross-Sectional Study"
+author:
+  - name: Jane Smith
+    affiliations:
+      - Department of Public Health, University of Example
+  - name: John Doe
+    affiliations:
+      - Department of Psychology, University of Example
+  - name: Maria Garcia
+    affiliations:
+      - Department of Urban Planning, University of Example
+date: 2025-06-15
+format: pdf
+abstract: |
+  Urban green spaces have been suggested to improve mental health,
+  but evidence from diverse urban populations remains limited. This
+  study examined the relationship between proximity to green spaces
+  and self-reported mental health outcomes in a stratified sample of
+  1,200 urban residents across three European cities. Results indicate
+  a significant positive association between green space access and
+  mental well-being, with effect sizes varying by age group and
+  socioeconomic status.
+---
+
+## Introduction
+
+Mental health disorders represent a growing public health concern in urban
+environments worldwide. As urbanization continues to accelerate, understanding
+the environmental determinants of mental health becomes increasingly important.
+The World Health Organization estimates that over 55% of the global population
+now lives in urban areas, a figure projected to reach 68% by 2050.
+
+Previous research has suggested that exposure to natural environments may
+have beneficial effects on psychological well-being. However, the majority
+of studies have relied on cross-sectional designs with limited sample sizes,
+restricting both causal inference and generalizability. A recent meta-analysis
+by Chen et al. (2024) identified significant heterogeneity in effect sizes
+across studies, underscoring the need for larger, multi-site investigations.
+
+In this study, we aimed to examine the association between residential
+proximity to urban green spaces and mental health outcomes in a diverse,
+multi-city sample of urban residents, while also exploring potential
+effect modification by sociodemographic factors.
+
+## Methods
+
+### Study Design and Participants
+
+We conducted a cross-sectional survey of 1,200 adults residing in three
+mid-sized European cities (Birmingham, Lyon, and Rotterdam) between
+January and June 2024. Participants were recruited through stratified
+random sampling of residential addresses, ensuring representation
+across income quartiles. Inclusion criteria were: age 18 years or older,
+residence in the study area for at least 12 months, and ability to
+complete the survey in the local language or English.
+
+### Measures
+
+Mental health was assessed using the General Health Questionnaire
+(GHQ-12), a widely used screening instrument for psychological
+distress. We additionally administered the WHO-5 Well-Being Index
+as a secondary outcome measure. Green space proximity was measured
+as the Euclidean distance from each participant's residence to the
+nearest public green space of at least 1 hectare, using municipal
+GIS databases.
+
+We also collected data on potential confounders including age,
+gender, income, education level, physical activity, and neighbourhood
+deprivation index.
+
+### Statistical Analysis
+
+We used multilevel linear regression with random intercepts for city
+to examine the association between green space proximity and GHQ-12
+scores, adjusting for potential confounders. We tested for effect
+modification by age group and income quartile using interaction terms.
+Sensitivity analyses included restricted cubic splines to assess
+non-linearity. All analyses were performed using R version 4.4.0.
+
+## Results
+
+Of the 1,200 participants, 1,147 provided complete data and were
+included in the analysis. The mean age was 44.1 years (SD = 15.3),
+and 53% were female. The median distance to the nearest green space
+was 340 meters (IQR: 180--620).
+
+In the adjusted model, each 100-meter decrease in distance to
+green space was associated with a 0.6-point improvement in GHQ-12
+scores (β = -0.006, 95% CI: -0.010 to -0.002, p = 0.004). Results
+were consistent when using the WHO-5 as the outcome measure.
+
+The association was stronger among participants aged 60 and older
+(β = -0.012, p = 0.001) compared to younger age groups. We also
+observed a significant interaction with income (p = 0.02), with
+stronger effects among participants in the lowest income quartile
+(β = -0.011, p < 0.001).
+
+Spline analyses suggested a non-linear relationship, with diminishing
+returns beyond approximately 500 meters of proximity.
+
+## Discussion
+
+Our findings suggest that proximity to urban green spaces is
+associated with better mental health outcomes across multiple
+European cities. These results are consistent with previous research
+highlighting the psychological benefits of nature exposure, and
+extend the evidence base by demonstrating effect modification by
+socioeconomic status.
+
+The stronger association observed among lower-income participants
+is particularly noteworthy, as these populations often have reduced
+access to green spaces. This finding aligns with environmental
+justice frameworks and suggests that equitable distribution of
+green spaces could help reduce mental health disparities.
+
+Several limitations should be noted. First, the cross-sectional
+design precludes causal inference. Second, we relied on
+self-reported mental health measures, though we mitigated this
+concern by using two validated instruments. Third, we did not
+account for the quality or type of green spaces, which may
+influence the magnitude of health effects.
+
+Future research should employ longitudinal designs and incorporate
+objective measures of mental health, such as clinical diagnoses
+from electronic health records, to strengthen the evidence base.
+
+## Conclusion
+
+This multi-city study provides robust evidence supporting the
+mental health benefits of urban green spaces, with effects that
+are particularly pronounced among older adults and lower-income
+residents. Urban planners and public health practitioners should
+consider these findings when designing equitable cities that
+promote population well-being.
