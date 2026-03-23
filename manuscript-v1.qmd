@@ -1,0 +1,96 @@
+---
+title: "Effects of Urban Green Spaces on Mental Health Outcomes"
+author:
+  - name: Jane Smith
+    affiliations:
+      - Department of Public Health, University of Example
+  - name: John Doe
+    affiliations:
+      - Department of Psychology, University of Example
+date: 2025-06-15
+format: pdf
+abstract: |
+  Urban green spaces have been suggested to improve mental health,
+  but evidence remains limited. This study examined the relationship
+  between proximity to green spaces and self-reported mental health
+  outcomes in a sample of 500 urban residents. Results indicate a
+  moderate positive association between green space access and
+  mental well-being.
+---
+
+## Introduction
+
+Mental health disorders represent a growing public health concern in urban
+environments worldwide. As urbanization continues to accelerate, understanding
+the environmental determinants of mental health becomes increasingly important.
+
+Previous research has suggested that exposure to natural environments may
+have beneficial effects on psychological well-being. However, the majority
+of studies have relied on cross-sectional designs, limiting causal inference.
+
+In this study, we aimed to examine the association between residential
+proximity to urban green spaces and mental health outcomes in a diverse
+sample of urban residents.
+
+## Methods
+
+### Study Design and Participants
+
+We conducted a cross-sectional survey of 500 adults residing in a
+mid-sized European city between January and June 2024. Participants
+were recruited through random sampling of residential addresses.
+Inclusion criteria were: age 18 years or older, residence in the
+study area for at least 12 months, and ability to complete the
+survey in English.
+
+### Measures
+
+Mental health was assessed using the General Health Questionnaire
+(GHQ-12), a widely used screening instrument for psychological
+distress. Green space proximity was measured as the Euclidean
+distance from each participant's residence to the nearest public
+green space of at least 1 hectare.
+
+We also collected data on potential confounders including age,
+gender, income, education level, and physical activity.
+
+### Statistical Analysis
+
+We used multiple linear regression to examine the association
+between green space proximity and GHQ-12 scores, adjusting for
+potential confounders. All analyses were performed using R version
+4.3.1.
+
+## Results
+
+Of the 500 participants, 487 provided complete data and were
+included in the analysis. The mean age was 42.3 years (SD = 14.1),
+and 52% were female.
+
+In the adjusted model, each 100-meter decrease in distance to
+green space was associated with a 0.8-point improvement in GHQ-12
+scores (β = -0.008, 95% CI: -0.014 to -0.002, p = 0.01).
+
+The association was stronger among participants aged 60 and older
+(β = -0.015, p = 0.003) compared to younger age groups.
+
+## Discussion
+
+Our findings suggest that proximity to urban green spaces is
+associated with better mental health outcomes. These results are
+consistent with previous research highlighting the psychological
+benefits of nature exposure.
+
+Several limitations should be noted. First, the cross-sectional
+design precludes causal inference. Second, we relied on
+self-reported mental health measures. Third, we did not account
+for the quality of green spaces.
+
+Future research should employ longitudinal designs and incorporate
+objective measures of mental health to strengthen the evidence base.
+
+## Conclusion
+
+This study provides evidence supporting the mental health benefits
+of urban green spaces. Urban planners should consider these findings
+when designing cities that promote well-being.
