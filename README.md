@@ -17,13 +17,13 @@ qmdiff will check for these at startup and show install instructions if they're 
 ## Installation
 
 ```bash
-uv tool install git+https://github.com/malcolmbarrett/qmdiff
+uv tool install git+https://github.com/StanfordHPDS/qmdiff
 ```
 
 Or for development:
 
 ```bash
-git clone https://github.com/malcolmbarrett/qmdiff
+git clone https://github.com/StanfordHPDS/qmdiff
 cd qmdiff
 uv sync
 ```
