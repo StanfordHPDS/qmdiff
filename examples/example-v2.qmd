@@ -1,0 +1,151 @@
+---
+title: "Causal Inference in Observational Studies: A Doubly Robust Approach"
+author:
+  - name: Alice Chen
+    affiliations:
+      - Department of Biostatistics, University of Example
+  - name: Bob Williams
+    affiliations:
+      - Department of Epidemiology, University of Example
+  - name: Diana Park
+    affiliations:
+      - Department of Statistics, University of Example
+date: 2025-06-15
+format: pdf
+bibliography: references.bib
+abstract: |
+  Causal inference from observational data remains a central challenge
+  in epidemiology. We compare propensity score methods with doubly
+  robust estimators and demonstrate their application using data from
+  the National Health Survey and the BRFSS.
+---
+
+## Introduction
+
+Establishing causal relationships from observational data is a
+fundamental challenge in public health research [@hernan_causal_2020;
+@robins_new_1986]. Unlike randomized trials, observational studies are
+susceptible to confounding, which can bias estimated treatment effects.
+
+Propensity score methods [@rosenbaum_central_1983] have become a
+standard tool for addressing confounding in observational research.
+These methods model the probability of treatment assignment given
+observed covariates, enabling researchers to create balance between
+treatment groups. More recently, doubly robust estimators
+[@bang_doubly_2005] have gained popularity as they provide consistent
+estimates if either the propensity score model or the outcome model is
+correctly specified. See @sec-methods for our analytical approach and
+@sec-results for findings.
+
+The average treatment effect (ATE) is defined as $\text{ATE} = E[Y(1) - Y(0)]$,
+where $Y(1)$ and $Y(0)$ represent potential outcomes under treatment
+and control, respectively. Under the doubly robust framework, the
+augmented estimator takes the form:
+
+$$
+\hat{\tau}_{DR} = \frac{1}{n} \sum_{i=1}^{n} \left[ \frac{A_i Y_i}{\hat{e}(X_i)} - \frac{(A_i - \hat{e}(X_i)) \hat{m}_1(X_i)}{\hat{e}(X_i)} \right] - \frac{1}{n} \sum_{i=1}^{n} \left[ \frac{(1-A_i) Y_i}{1 - \hat{e}(X_i)} + \frac{(A_i - \hat{e}(X_i)) \hat{m}_0(X_i)}{1 - \hat{e}(X_i)} \right]
+$$
+
+where $\hat{e}(X_i)$ is the estimated propensity score and
+$\hat{m}_a(X_i)$ are outcome model predictions.
+
+## Methods {#sec-methods}
+
+### Data Source
+
+We used data from the 2023 National Health Survey and the 2023
+Behavioral Risk Factor Surveillance System (BRFSS), yielding a
+combined sample of `n = 12,500` participants with complete covariate
+information.
+
+### Propensity Score Estimation
+
+We estimated propensity scores using gradient-boosted models with
+cross-validation:
+
+$$
+\hat{e}(X_i) = P(A_i = 1 \mid X_i) = f_{GBM}(X_i)
+$$
+
+where $A$ denotes treatment assignment and $X_i$ includes age, sex,
+income, education, BMI, and smoking status. We assessed balance using
+standardized mean differences, targeting a threshold of $d < 0.1$.
+
+```{r}
+#| label: fig-balance
+#| fig-cap: "Standardized mean differences before and after propensity score weighting across both data sources."
+
+library(ggplot2)
+library(dplyr)
+
+balance_data <- tibble(
+  covariate = rep(c("Age", "Sex", "Income", "Education", "BMI", "Smoking"), 2),
+  smd = c(0.35, 0.22, 0.41, 0.28, 0.19, 0.31, 0.03, 0.02, 0.04, 0.01, 0.03, 0.05),
+  type = rep(c("Unadjusted", "PS-weighted"), each = 6)
+)
+
+ggplot(balance_data, aes(x = smd, y = covariate, color = type, shape = type)) +
+  geom_point(size = 3) +
+  geom_vline(xintercept = 0.1, linetype = "dashed") +
+  labs(x = "Standardized Mean Difference", y = NULL, color = "Method", shape = "Method") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+### Statistical Analysis
+
+We estimated the ATE using three approaches: IPTW, outcome regression,
+and the doubly robust augmented IPTW (AIPTW) estimator. Variance was
+estimated using the nonparametric bootstrap with 1,000 replicates.
+
+```{r}
+#| label: tbl-model
+#| tbl-cap: "Treatment effect estimates from IPTW, outcome regression, and doubly robust analysis."
+
+library(gt)
+
+results <- tibble(
+  Model = c("Unadjusted", "IPTW", "Outcome regression", "AIPTW (doubly robust)"),
+  Estimate = c(2.3, 1.6, 1.5, 1.5),
+  CI_lower = c(1.5, 1.0, 0.9, 1.0),
+  CI_upper = c(3.1, 2.2, 2.1, 2.0),
+  p_value = c(0.001, 0.004, 0.005, 0.003)
+)
+
+gt(results) |>
+  fmt_number(columns = Estimate:CI_upper, decimals = 1) |>
+  tab_footnote("Bootstrap confidence intervals based on 1,000 replicates.")
+```
+
+## Results {#sec-results}
+
+After propensity score weighting, all standardized mean differences
+were below 0.1, indicating adequate balance (see @fig-balance). The
+IPTW estimate of the ATE was 1.6 (95% CI: 1.0 to 2.2, p = 0.004).
+The doubly robust AIPTW estimate was 1.5 (95% CI: 1.0 to 2.0,
+p = 0.003), as shown in @tbl-model.
+
+Sensitivity analyses using trimmed weights (excluding extreme
+propensity scores below 0.05 or above 0.95) yielded similar results
+(ATE = 1.5, 95% CI: 0.9 to 2.1). An E-value analysis indicated that
+an unmeasured confounder would need to have a risk ratio of at least
+2.1 with both treatment and outcome to explain away the observed
+effect.
+
+## Discussion
+
+Our analysis demonstrates that both propensity score weighting and
+doubly robust estimation effectively reduce confounding bias in this
+multi-source observational dataset. The doubly robust estimate of
+1.5 units is clinically meaningful and provides additional protection
+against model misspecification.
+
+These findings align with previous work by @hernan_causal_2020, who
+emphasized the importance of careful confounder adjustment in
+observational studies. The consistency between IPTW and AIPTW estimates
+provides reassurance about the robustness of our findings. However,
+neither approach can address unmeasured confounding, which remains a
+key limitation. The E-value analysis provides a quantitative assessment
+of this vulnerability.
+
+## References

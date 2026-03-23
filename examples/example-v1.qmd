@@ -1,0 +1,121 @@
+---
+title: "Causal Inference in Observational Studies"
+author:
+  - name: Alice Chen
+    affiliations:
+      - Department of Biostatistics, University of Example
+  - name: Bob Williams
+    affiliations:
+      - Department of Epidemiology, University of Example
+date: 2025-06-15
+format: pdf
+bibliography: references.bib
+abstract: |
+  Causal inference from observational data remains a central challenge
+  in epidemiology. We review propensity score methods and demonstrate
+  their application using data from the National Health Survey.
+---
+
+## Introduction
+
+Establishing causal relationships from observational data is a
+fundamental challenge in public health research [@hernan_causal_2020;
+@robins_new_1986]. Unlike randomized trials, observational studies are
+susceptible to confounding, which can bias estimated treatment effects.
+
+Propensity score methods [@rosenbaum_central_1983] have become a
+standard tool for addressing confounding in observational research.
+These methods model the probability of treatment assignment given
+observed covariates, enabling researchers to create balance between
+treatment groups. See @sec-methods for our analytical approach and
+@sec-results for findings.
+
+The average treatment effect (ATE) is defined as $\text{ATE} = E[Y(1) - Y(0)]$,
+where $Y(1)$ and $Y(0)$ represent potential outcomes under treatment
+and control, respectively.
+
+## Methods {#sec-methods}
+
+### Data Source
+
+We used data from the 2023 National Health Survey, which includes
+`n = 5,000` participants with complete covariate information.
+
+### Propensity Score Estimation
+
+We estimated propensity scores using logistic regression:
+
+$$
+\text{logit}(P(A = 1 \mid X)) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3
+$$
+
+where $A$ denotes treatment assignment and $X_1, X_2, X_3$ are
+baseline covariates. We assessed balance using standardized mean
+differences, targeting a threshold of $d < 0.1$.
+
+```{r}
+#| label: fig-balance
+#| fig-cap: "Standardized mean differences before and after propensity score weighting."
+
+library(ggplot2)
+library(dplyr)
+
+balance_data <- tibble(
+  covariate = rep(c("Age", "Sex", "Income", "Education"), 2),
+  smd = c(0.35, 0.22, 0.41, 0.28, 0.04, 0.03, 0.06, 0.02),
+  type = rep(c("Unadjusted", "PS-weighted"), each = 4)
+)
+
+ggplot(balance_data, aes(x = smd, y = covariate, color = type)) +
+  geom_point(size = 3) +
+  geom_vline(xintercept = 0.1, linetype = "dashed") +
+  theme_minimal()
+```
+
+### Statistical Analysis
+
+We estimated the ATE using inverse probability of treatment weighting
+(IPTW). Variance was estimated using the robust sandwich estimator.
+
+```{r}
+#| label: tbl-model
+#| tbl-cap: "Treatment effect estimates from IPTW analysis."
+
+library(gt)
+
+results <- tibble(
+  Model = c("Unadjusted", "IPTW", "IPTW + trimming"),
+  Estimate = c(2.3, 1.8, 1.7),
+  CI_lower = c(1.5, 1.1, 1.0),
+  CI_upper = c(3.1, 2.5, 2.4),
+  p_value = c(0.001, 0.003, 0.004)
+)
+
+gt(results) |>
+  fmt_number(columns = Estimate:CI_upper, decimals = 1)
+```
+
+## Results {#sec-results}
+
+After propensity score weighting, all standardized mean differences
+were below 0.1, indicating adequate balance (see @fig-balance). The
+IPTW estimate of the ATE was 1.8 (95% CI: 1.1 to 2.5, p = 0.003),
+as shown in @tbl-model.
+
+Sensitivity analyses using trimmed weights (excluding extreme
+propensity scores below 0.05 or above 0.95) yielded similar results
+(ATE = 1.7, 95% CI: 1.0 to 2.4).
+
+## Discussion
+
+Our analysis demonstrates that propensity score weighting effectively
+reduces confounding bias in this observational dataset. The estimated
+treatment effect of 1.8 units is clinically meaningful and robust to
+sensitivity analyses.
+
+These findings align with previous work by @hernan_causal_2020, who
+emphasized the importance of careful confounder adjustment in
+observational studies. However, propensity score methods cannot
+address unmeasured confounding, which remains a key limitation.
+
+## References
