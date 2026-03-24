@@ -3,6 +3,7 @@
 from qmdiff.frontmatter import (
     extract_frontmatter,
     has_format,
+    extract_format,
     inject_filter,
     assemble_qmd,
 )
@@ -109,6 +110,28 @@ class TestHasFormat:
 
     def test_default_yaml(self):
         assert has_format("---\ntitle: Diff\n---") is False
+
+
+# --- extract_format ---
+
+
+class TestExtractFormat:
+    def test_no_format(self):
+        assert extract_format("---\ntitle: Test\n---") is None
+
+    def test_simple_format(self):
+        assert extract_format("---\ntitle: Test\nformat: pdf\n---") == "pdf"
+
+    def test_nested_format(self):
+        yaml = "---\ntitle: Test\nformat:\n  jasa-pdf:\n    keep-tex: true\n---"
+        assert extract_format(yaml) == "jasa-pdf"
+
+    def test_html_format(self):
+        assert extract_format("---\nformat: html\n---") == "html"
+
+    def test_nested_html(self):
+        yaml = "---\nformat:\n  html:\n    toc: true\n---"
+        assert extract_format(yaml) == "html"
 
 
 # --- assemble_qmd ---

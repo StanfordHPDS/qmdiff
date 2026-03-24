@@ -11,7 +11,7 @@ from qmdiff import __version__
 from qmdiff.criticmarkup import convert_criticmarkup
 from qmdiff.deps import check_dependencies
 from qmdiff.differ import diff_texts
-from qmdiff.frontmatter import extract_frontmatter, has_format, assemble_qmd
+from qmdiff.frontmatter import extract_frontmatter, extract_format, assemble_qmd
 from qmdiff.git import validate_revision, extract_file_at_revision
 from qmdiff.pipeline import get_filter_path, render_diff
 
@@ -109,14 +109,15 @@ def _run_pipeline(
     click.echo("Converting markup...")
     processed = convert_criticmarkup(diff)
 
-    # If YAML already specifies a format, let quarto use it
-    render_fmt = None if has_format(yaml) else fmt
+    # If YAML specifies a format, use it instead of the inferred one
+    yaml_fmt = extract_format(yaml)
+    render_fmt = yaml_fmt if yaml_fmt else fmt
 
     filter_path = get_filter_path()
     diff_qmd = output.with_suffix(".qmd")
     diff_qmd.write_text(assemble_qmd(yaml, processed, str(filter_path)))
     click.echo(f"Wrote {diff_qmd}")
 
-    click.echo(f"Rendering to {render_fmt or 'YAML format'}...")
+    click.echo(f"Rendering to {render_fmt}...")
     render_diff(diff_qmd, output, render_fmt, keep=keep)
     click.echo(f"Done -> {output}")

@@ -32,6 +32,35 @@ def has_format(yaml_block: str) -> bool:
     return False
 
 
+def extract_format(yaml_block: str) -> str | None:
+    """Extract the format name from YAML frontmatter.
+
+    Returns the format name (e.g. 'pdf', 'jasa-pdf', 'html') or None
+    if no format is specified. For nested format blocks like:
+        format:
+          jasa-pdf:
+            keep-tex: true
+    returns 'jasa-pdf'.
+    For simple format like:
+        format: pdf
+    returns 'pdf'.
+    """
+    lines = yaml_block.split("\n")
+    for i, line in enumerate(lines):
+        if line.startswith("format:"):
+            # Check if value is on the same line: "format: pdf"
+            rest = line[len("format:") :].strip()
+            if rest:
+                return rest
+            # Otherwise look at the next indented line for the format key
+            if i + 1 < len(lines):
+                next_line = lines[i + 1]
+                if next_line.startswith("  ") and ":" in next_line:
+                    return next_line.strip().rstrip(":")
+            return None
+    return None
+
+
 def inject_filter(yaml_block: str, filter_path: str) -> str:
     """Inject a Lua filter path into the YAML frontmatter.
 
